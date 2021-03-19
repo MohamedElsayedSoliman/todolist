@@ -11,7 +11,7 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
-mongoose.connect("mongodb://localhost:27017/todolistDB",{ useNewUrlParser: true,useUnifiedTopology: true });
+mongoose.connect("mongodb://localhost:27017/todolistDB",{ useNewUrlParser: true,useUnifiedTopology: true ,useFindAndModify:false});
 const itemsSchema ={
 name: String
 };
@@ -50,7 +50,7 @@ app.get("/", function(req, res) {
         if (err) {
           console.log(err);
         } else {
-          console.log("successfully inserted");
+          
         }
 
       });
@@ -70,26 +70,24 @@ app.get("/", function(req, res) {
 app.post("/delete", function(req, res){
 
 const checkedIdNumber = req.body.checkbox.trim();
-const ListName= req.body.listName;
+const listName= req.body.listName;
 
-if(ListName==="Today"){
+if(listName==="Today"){
   Item.findByIdAndRemove(checkedIdNumber,function(err){
 
     if (!err) {
-      console.log("deleted successfully");
       res.redirect("/");
     }
 
   });
 } else {
 
-  List.findOne({listName: listName}, function(err,doc){
-        doc.list.pull({_id:checkedIdNumber });
-        doc.save();
-        res.redirect("/" + listName);
-      });
+  List.findOne({name:listName}, function(err, foundList){
 
-
+       foundList.items.pull({ _id:checkedIdNumber});
+       foundList.save();
+       res.redirect("/" +listName);
+});
 }
 
 
